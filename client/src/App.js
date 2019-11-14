@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
-// import logo from './logo.svg';
+import Player from './Player';
 import './App.css';
 
 const spotifyApi = new SpotifyWebApi();
@@ -16,8 +16,22 @@ class App extends Component {
     }
     this.state = {
       loggedIn: token ? true : false,
-      nowPlaying: { name : 'Not Checked', albumArt : ''}
-    }
+      item: { 
+        album : {
+           images: [{url: ''}]
+          }, 
+        name: '',
+        artists: [{ name : ''}],
+        duration_ms : 0,
+      },
+      is_playing : "Paused",
+      progress_ms : 0
+    };
+    this.getNowPlaying = this.getNowPlaying.bind(this);
+  };
+
+  componentDidMount() {
+    this.getNowPlaying();
   }
 
   getHashParams() {
@@ -33,13 +47,12 @@ class App extends Component {
   }
 
   getNowPlaying() {
-    spotifyApi.getMyCurrentPlaybackState()
+    spotifyApi.getMyCurrentPlayingTrack()
       .then((response) => {
         this.setState({
-          nowPlaying : {
-            name : response.item.name,
-            albumArt : response.item.album.images[0].url
-          }
+          item: response.item,
+          is_playing: response.is_playing,
+          progress_ms: response.progress_ms,
         });
       });
   }
@@ -47,15 +60,12 @@ class App extends Component {
   render() {
     return (
       <div className='App'>
-        <a href='http://localhost:8888'> Login to Spotify </a>
-        <div>
-          Now Playing: { this.state.nowPlaying.name }
-        </div>
-        <div>
-          <img src = { this.state.nowPlaying.albumArt } style = {{ height : 150 }} />
-        </div>
+        <a className='btn btn--loginApp-link' href='http://localhost:8888'> Login to Spotify </a>
         { this.state.loggedIn && 
-          <button onClick = {() => this.getNowPlaying() }> Check Now Playing </button> 
+          // <button onClick = {() => this.getNowPlaying() }> Check Now Playing </button> 
+          <Player item = { this.state.item }
+          is_playing = { this.state.is_playing }
+          progress_ms = { this.progress_ms } />
         }
       </div>
     );
